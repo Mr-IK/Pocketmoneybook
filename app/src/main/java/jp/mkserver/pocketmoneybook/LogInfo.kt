@@ -165,46 +165,48 @@ class LogInfo : AppCompatActivity() {
 
 
     // アクティビティ終了時に呼び出される
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
-            if (data.hasExtra(RecognizerIntent.EXTRA_RESULTS)) {
-                //ここで認識された文字列を取得
-                val results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                if (results.size > 0) {
-                    var resultsString = "成功しました！"
-                    val finalresult = results[0].split("の理由で")
-                    if (finalresult.size < 2) {
-                        resultsString = "言うものがたりないよ！"
-                    } else {
-
-                        memoEdit.setText(finalresult[0])
-                        val truefinalresult = finalresult[1].split("円を")
-                        if (truefinalresult.size < 2) {
-                            resultsString = "使うかもらうかをいってほしいな！"
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(data is Intent){
+            if (requestCode == 0 && resultCode == Activity.RESULT_OK) {
+                if (data.hasExtra(RecognizerIntent.EXTRA_RESULTS)) {
+                    //ここで認識された文字列を取得
+                    val results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    if (results.size > 0) {
+                        var resultsString = "成功しました！"
+                        val finalresult = results[0].split("の理由で")
+                        if (finalresult.size < 2) {
+                            resultsString = "言うものがたりないよ！"
                         } else {
-                            try {
-                                when {
-                                    truefinalresult[1] == "もらう" -> {
-                                        howmuchEdit.setText(repJPBal(truefinalresult[0]).toString())
-                                        minusSwitch.isChecked = false
+
+                            memoEdit.setText(finalresult[0])
+                            val truefinalresult = finalresult[1].split("円を")
+                            if (truefinalresult.size < 2) {
+                                resultsString = "使うかもらうかをいってほしいな！"
+                            } else {
+                                try {
+                                    when {
+                                        truefinalresult[1] == "もらう" -> {
+                                            howmuchEdit.setText(repJPBal(truefinalresult[0]).toString())
+                                            minusSwitch.isChecked = false
+                                        }
+                                        truefinalresult[1] == "使う" -> {
+                                            howmuchEdit.setText(repJPBal(truefinalresult[0]).toString())
+                                            minusSwitch.isChecked = true
+                                        }
+                                        else -> {
+                                            howmuchEdit.setText(finalresult[1])
+                                            resultsString = "使うかもらうかがよくわからなかったよ！"
+                                        }
                                     }
-                                    truefinalresult[1] == "使う" -> {
-                                        howmuchEdit.setText(repJPBal(truefinalresult[0]).toString())
-                                        minusSwitch.isChecked = true
-                                    }
-                                    else -> {
-                                        howmuchEdit.setText(finalresult[1])
-                                        resultsString = "使うかもらうかがよくわからなかったよ！"
-                                    }
+                                } catch (e: NumberFormatException) {
+                                    resultsString = "おかねがよくわからなかったよ！"
                                 }
-                            } catch (e: NumberFormatException) {
-                                resultsString = "おかねがよくわからなかったよ！"
                             }
                         }
-                    }
 
-                    // トーストを使って結果を表示
-                    Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show()
+                        // トーストを使って結果を表示
+                        Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
